@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <script>
+      // Suppress transient WebSocket errors from Vite HMR in cloud iframe preview
+      (function () {
+        if (typeof Promise.try !== 'function') {
+          Promise.try = function (fn) {
+            var args = Array.prototype.slice.call(arguments, 1);
+            return new Promise(function (resolve) {
+              resolve(fn.apply(null, args));
+            });
+          };
+        }
+
+        var origConsoleError = console.error;
+        console.error = function () {
+          var args = Array.prototype.slice.call(arguments);
+          var msg = args.map(function (a) {
+            return (a && a.message) || String(a || '');
+          }).join(' ');
+          if (
+            msg.indexOf('WebSocket closed without opened') !== -1 ||
+            (msg.indexOf('WebSocket') !== -1 && msg.indexOf('closed') !== -1)
+          ) {
+            // Environment constraint: HMR is disabled in cloud iframe, ignore WebSocket errors
+            return;
+          }
+          origConsoleError.apply(console, args);
+        };
+        window.addEventListener('unhandledrejection', function (event) {
+          var msg = (event && event.reason && (event.reason.message || String(event.reason))) || '';
+          if (msg.indexOf('WebSocket') !== -1 || msg.indexOf('closed without opened') !== -1) {
+            event.preventDefault();
+            if (event.stopImmediatePropagation) event.stopImmediatePropagation();
+          }
+        });
+        window.addEventListener('error', function (event) {
+          var msg = (event && (event.message || (event.error && (event.error.message || String(event.error))))) || '';
+          if (msg.indexOf('WebSocket') !== -1 || msg.indexOf('closed without opened') !== -1) {
+            event.preventDefault();
+            if (event.stopImmediatePropagation) event.stopImmediatePropagation();
+          }
+        }, true);
+      })();
+    </script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PaperPlane PDF - Free, Friendly Online PDF Editor</title>
+    <meta name="description" content="Fly through your documents. Effortlessly merge, split, compress, and organize PDFs right in your browser with 100% privacy and zero uploads." />
+    <meta property="og:title" content="PaperPlane PDF - Free, Friendly Online PDF Editor" />
+    <meta property="og:description" content="Fly through your documents. Effortlessly merge, split, compress, and organize PDFs right in your browser with 100% privacy and zero uploads." />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="theme-color" content="#4f46e5" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="PaperPlane" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="icon" type="image/svg+xml" href="/icon.svg" />
+    <link rel="alternate icon" href="/favicon.ico" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  </head>
+  <body class="bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 antialiased selection:bg-indigo-500/20 selection:text-indigo-600">
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+
